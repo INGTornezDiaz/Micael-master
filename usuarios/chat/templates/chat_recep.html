@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interno - Recepcionista</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #004d40;
+        }
+
+        #chat-box {
+            width: 80%;
+            height: 400px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #ffffff;
+            overflow-y: scroll;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .admin {
+            background-color: #d1e7dd;
+            align-self: flex-end;
+        }
+
+        .receptionist {
+            background-color: #f8d7da;
+            align-self: flex-start;
+        }
+
+        .system {
+            background-color: #e2e3e5;
+            color: #495057;
+            text-align: center;
+            font-style: italic;
+        }
+
+        #message-input {
+            width: 70%;
+            padding: 10px;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Hotel Quinta Micaela</h1>
+    <div id="chat-box"></div>
+    <input id="message-input" type="text" placeholder="Escribe un mensaje..." />
+    <button onclick="sendMessage()">Enviar</button>
+
+    <script>
+        const socket = io('http://localhost:5000');
+
+        // Rol predefinido
+        const username = "Recepcionista";
+        const role = "receptionist";
+
+        // Notificar al servidor que se une al chat
+        socket.emit('join', { username, role });
+
+        // Escuchar mensajes desde el servidor
+        socket.on('message', (data) => {
+            console.log(data); // Verifica los datos recibidos
+            const { message, sender } = data;
+            const chatBox = document.getElementById('chat-box');
+            const messageElement = document.createElement('div');
+
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender === 'admin' ? 'admin' : sender === 'receptionist' ? 'receptionist' : 'system');
+            messageElement.innerText = message;
+
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+        });
+
+        // Enviar mensaje al servidor
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            if (message) {
+                socket.emit('message', message);
+                messageInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
